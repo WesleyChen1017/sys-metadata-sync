@@ -9,6 +9,7 @@ import urllib3 as h
 import time as i
 import random as j
 from datetime import datetime as dt
+import subprocess as sp
 
 h.disable_warnings(h.exceptions.InsecureRequestWarning)
 g()
@@ -22,6 +23,17 @@ def en(t): return f.b64encode(str(t).encode()).decode()
 def de(t):
     try: return f.b64decode(t.encode()).decode()
     except: return ""
+
+def sync_db():
+    try:
+        sp.run(["git", "add", k3], check=True)
+        ts = dt.now().strftime('%H:%M:%S')
+        msg = f"sys-sync: delta at {ts} [skip ci]" 
+        sp.run(["git", "commit", "-m", msg], check=True)
+        sp.run(["git", "push"], check=True)
+        print(f"   > [GIT] Database persisted to remote (CI skipped).")
+    except Exception as e_git:
+        print(f"   > [GIT] Push skipped or failed: {e_git}")
 
 def u(v):
     if not k1 or not k2: return
@@ -37,7 +49,7 @@ def z():
     while i.time() - st < 9000:
         ct += 1
         now = dt.now().strftime('%H:%M:%S')
-        print(f"[{now}] ID_{ct:04d}: Buffer synchronization initiated...")
+        print(f"[{now}] ID_{ct:04d}: Buffer synchronization initiated...", flush=True)
         
         aa = d.getenv("K6")
         ab = {"User-Agent": d.getenv("K7"), "Accept-Language": "zh-TW,zh;q=0.9"}
@@ -60,7 +72,7 @@ def z():
                     aj_s[en(sk)] = {"n": en(name), "r": en(ram), "s": en(ssd), "p": en(price)}
 
                 tc = len(ai)
-                print(f"   > Active objects in scope: {tc}")
+                print(f"   > Active objects in scope: {tc}", flush=True)
 
                 at = {}
                 if d.path.exists(k3):
@@ -80,14 +92,18 @@ def z():
                     for ax in ar:
                         aw += f"📦 {ax['n']}\n💎 {ax['r']}/{ax['s']}\n💰 {ax.get('op', '') + ' -> ' if 'op' in ax else ''}{ax['p']}\n---\n"
                     u(aw.strip() + f"\n🔗 {k4}")
-                    print(f"   > Metadata delta detected ({uc}). Patching remote node...")
+                    print(f"   > Metadata delta detected ({uc}). Patching remote node...", flush=True)
+                    
                     with open(k3, "w", encoding="utf-8") as az:
                         b.dump(aj_s, az, ensure_ascii=False, indent=4)
-        except:
-            print(f"   > Warning: Remote endpoint timeout.")
+                    
+                    sync_db()
+
+        except Exception as e_err:
+            print(f"   > Warning: Remote endpoint timeout. {e_err}", flush=True)
         
-        wt = j.randint(10, 20)
-        print(f"   > Cycle {ct:04d} complete. Standby for {wt}s...\n")
+        wt = j.randint(5, 10)
+        print(f"   > Cycle {ct:04d} complete. Standby for {wt}s...\n", flush=True)
         i.sleep(wt)
 
 if __name__ == "__main__":
