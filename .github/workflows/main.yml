@@ -30,6 +30,7 @@ jobs:
           K7: ${{ secrets.K7 }}
           K8: ${{ secrets.K8 }}
           M1: ${{ secrets.M1 }}
+          PYTHONUNBUFFERED: 1
         run: python main.py
       - name: Sync-State
         run: |
